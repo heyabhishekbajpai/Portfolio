@@ -2,7 +2,6 @@
 
 A modern, interactive portfolio website showcasing my work as an aspiring Full Stack Developer, Designer, and Filmmaker.
 
-![Portfolio Preview](https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=600&fit=crop)
 
 ## ✨ Features
 
