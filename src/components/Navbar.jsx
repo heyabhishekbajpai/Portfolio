@@ -34,7 +34,7 @@ export default function Navbar() {
 
     return (
         <nav
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass shadow-lg py-4' : 'bg-transparent py-6'
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-100 ${isScrolled ? 'glass shadow-lg py-4' : 'bg-transparent py-6'
                 }`}
         >
             <div className="container mx-auto px-4 md:px-6">
@@ -73,10 +73,10 @@ export default function Navbar() {
                                     e.preventDefault();
                                     scrollToSection(link.href);
                                 }}
-                                className="text-white/80 hover:text-white transition-colors duration-300 text-sm font-medium relative group"
+                                className="text-white/80 hover:text-white transition-colors duration-100 text-sm font-medium relative group"
                             >
                                 {link.name}
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-accent group-hover:w-full transition-all duration-300" />
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-accent group-hover:w-full transition-all duration-100" />
                             </a>
                         ))}
                     </motion.div>
@@ -114,7 +114,7 @@ export default function Navbar() {
                                             e.preventDefault();
                                             scrollToSection(link.href);
                                         }}
-                                        className="text-white/80 hover:text-white transition-colors duration-300 text-base font-medium py-2"
+                                        className="text-white/80 hover:text-white transition-colors duration-100 text-base font-medium py-2"
                                     >
                                         {link.name}
                                     </a>

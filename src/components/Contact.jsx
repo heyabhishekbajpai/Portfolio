@@ -1,235 +1,217 @@
-import { motion } from 'framer-motion';
-import { useInView } from 'framer-motion';
-import { useRef, useState } from 'react';
-import { Send, Mail, Linkedin, Github, Youtube, Instagram, Twitter, MessageCircle } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { Copy, Check, Github, Linkedin, Youtube, Instagram, Twitter, ArrowRight } from 'lucide-react';
+
+const EMAIL = 'bajpai.connect@gmail.com';
+
+const socials = [
+    {
+        icon: Github,
+        url: 'https://github.com/heyabhishekbajpai',
+        label: 'GitHub',
+    },
+    {
+        icon: Linkedin,
+        url: 'https://www.linkedin.com/in/heybajpai/',
+        label: 'LinkedIn',
+    },
+    {
+        icon: Youtube,
+        url: 'https://www.youtube.com/@abhishek.bajpai',
+        label: 'YouTube',
+    },
+    {
+        icon: Instagram,
+        url: 'https://www.instagram.com/hey.bajpai/',
+        label: 'Instagram',
+    },
+    {
+        icon: Twitter,
+        url: 'https://x.com/BajpaiX',
+        label: 'X / Twitter',
+    },
+];
 
 export default function Contact() {
     const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
-    const [formData, setFormData] = useState({ name: '', email: '', message: '' });
-    const [status, setStatus] = useState({ type: '', message: '' });
+    const isInView = useInView(ref, { once: true, margin: '-100px' });
+    const [copied, setCopied] = useState(false);
 
-    const socialLinks = [
-        {
-            name: 'LinkedIn',
-            icon: <Linkedin size={24} />,
-            url: 'https://www.linkedin.com/in/heybajpai/',
-            color: 'hover:text-blue-500'
-        },
-        {
-            name: 'GitHub',
-            icon: <Github size={24} />,
-            url: 'https://github.com/heyabhishekbajpai',
-            color: 'hover:text-gray-400'
-        },
-        {
-            name: 'YouTube',
-            icon: <Youtube size={24} />,
-            url: 'https://www.youtube.com/@abhishek.bajpai',
-            color: 'hover:text-red-500'
-        },
-        {
-            name: 'Email',
-            icon: <Mail size={24} />,
-            url: 'mailto:bajpai.connect@gmail.com',
-            color: 'hover:text-green-500'
-        },
-        {
-            name: 'Twitter',
-            icon: <Twitter size={24} />,
-            url: 'https://x.com/BajpaiX',
-            color: 'hover:text-blue-400'
-        },
-        {
-            name: 'Instagram',
-            icon: <Instagram size={24} />,
-            url: 'https://www.instagram.com/hey.bajpai/',
-            color: 'hover:text-pink-500'
-        },
-        {
-            name: 'WhatsApp',
-            icon: <MessageCircle size={24} />,
-            url: 'https://wa.me/917307457138?text=Hey%20Abhishek',
-            color: 'hover:text-green-500'
-        },
-    ];
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        // Basic validation
-        if (!formData.name || !formData.email || !formData.message) {
-            setStatus({ type: 'error', message: 'Please fill in all fields' });
-            return;
+    const copyEmail = async () => {
+        try {
+            await navigator.clipboard.writeText(EMAIL);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            // Fallback
+            const textArea = document.createElement('textarea');
+            textArea.value = EMAIL;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
         }
-
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-            setStatus({ type: 'error', message: 'Please enter a valid email' });
-            return;
-        }
-
-        // Simulated success (replace with actual backend call)
-        setStatus({ type: 'success', message: 'Message sent successfully! I\'ll get back to you soon.' });
-        setFormData({ name: '', email: '', message: '' });
-
-        setTimeout(() => setStatus({ type: '', message: '' }), 5000);
-    };
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     return (
-        <section id="contact" className="relative py-20 md:py-32 bg-black">
-            <div className="container mx-auto px-4 md:px-6">
-                <motion.div
-                    ref={ref}
-                    initial={{ opacity: 0, y: 50 }}
+        <section
+            id="contact"
+            className="relative py-32 md:py-44 noise-overlay"
+            style={{ background: 'var(--color-bg)' }}
+        >
+            <div className="section-divider" />
+
+            <div className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 pt-16 text-center" ref={ref}>
+                {/* Section Label */}
+                <motion.p
+                    className="section-label mb-6"
+                    style={{ color: 'var(--color-cyan)' }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.8 }}
+                    transition={{ duration: 0.5 }}
                 >
-                    {/* Section Title */}
-                    <div className="text-center mb-12 md:mb-16">
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-                            <span className="gradient-text">Let's Connect</span>
-                        </h2>
-                        <p className="text-white/70 text-lg max-w-2xl mx-auto mb-4">
-                            Have a project in mind or just want to chat? Feel free to reach out!
-                        </p>
-                        <div className="w-24 h-1 bg-gradient-to-r from-primary via-secondary to-accent mx-auto rounded-full" />
-                    </div>
+                    {'// CONTACT'}
+                </motion.p>
 
-                    <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+                {/* Main Heading */}
+                <motion.h2
+                    className="text-4xl md:text-6xl font-bold mb-6"
+                    style={{
+                        fontFamily: 'var(--font-display)',
+                        color: 'var(--color-text)',
+                        lineHeight: 1.2,
+                    }}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                >
+                    Let's make
+                    <br />
+                    <span style={{ color: 'var(--color-cyan)' }}>something.</span>
+                </motion.h2>
 
-                        {/* Contact Form */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -50 }}
-                            animate={isInView ? { opacity: 1, x: 0 } : {}}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                        >
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div>
-                                    <label htmlFor="name" className="block text-white/80 font-medium mb-2">
-                                        Your Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 glass rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder-white/40"
-                                        placeholder="Enter your name"
-                                    />
-                                </div>
+                {/* Subtext */}
+                <motion.p
+                    className="text-sm mb-10"
+                    style={{
+                        fontFamily: 'var(--font-body)',
+                        color: 'var(--color-muted)',
+                        maxWidth: '400px',
+                        margin: '0 auto 2.5rem',
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={isInView ? { opacity: 1 } : {}}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                >
+                    Got a project in mind? Want to collaborate on something cool?
+                    Drop me a line.
+                </motion.p>
 
-                                <div>
-                                    <label htmlFor="email" className="block text-white/80 font-medium mb-2">
-                                        Your Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 glass rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder-white/40"
-                                        placeholder="your.email@example.com"
-                                    />
-                                </div>
+                {/* Email CTA Button */}
+                <motion.button
+                    onClick={copyEmail}
+                    className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-lg transition-all duration-100 mb-12"
+                    style={{
+                        background: copied
+                            ? 'rgba(40, 200, 64, 0.1)'
+                            : 'rgba(0, 212, 255, 0.08)',
+                        border: `1px solid ${copied ? 'rgba(40, 200, 64, 0.3)' : 'rgba(0, 212, 255, 0.25)'}`,
+                        fontFamily: 'var(--font-mono)',
+                        color: copied ? '#28c840' : 'var(--color-cyan)',
+                        fontSize: '0.95rem',
+                        cursor: 'pointer',
+                    }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                    whileHover={{
+                        boxShadow: '0 0 40px rgba(0, 212, 255, 0.15)',
+                        borderColor: 'rgba(0, 212, 255, 0.5)',
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                >
+                    {copied ? (
+                        <>
+                            <Check size={18} />
+                            Copied!
+                        </>
+                    ) : (
+                        <>
+                            <ArrowRight size={18} className="transition-transform duration-100 group-hover:translate-x-1" />
+                            {EMAIL}
+                            <Copy size={14} style={{ color: 'var(--color-muted)', marginLeft: '4px' }} />
+                        </>
+                    )}
+                </motion.button>
 
-                                <div>
-                                    <label htmlFor="message" className="block text-white/80 font-medium mb-2">
-                                        Your Message
-                                    </label>
-                                    <textarea
-                                        id="message"
-                                        name="message"
-                                        value={formData.message}
-                                        onChange={handleChange}
-                                        rows="6"
-                                        className="w-full px-4 py-3 glass rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white/5 text-white placeholder-white/40 resize-none"
-                                        placeholder="Tell me about your project or just say hi..."
-                                    />
-                                </div>
+                {/* Terminal send_message */}
+                <motion.div
+                    className="mb-12"
+                    initial={{ opacity: 0 }}
+                    animate={isInView ? { opacity: 1 } : {}}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                >
+                    <a
+                        href={`mailto:${EMAIL}`}
+                        className="inline-block transition-all duration-100 hover:text-cyan-400"
+                        style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.8rem',
+                            color: 'var(--color-muted)',
+                            textDecoration: 'none',
+                        }}
+                    >
+                        {'>'} send_message()<span className="cursor-blink" />
+                    </a>
+                </motion.div>
 
-                                {/* Status Message */}
-                                {status.message && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className={`p-4 rounded-lg ${status.type === 'success'
-                                                ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                                                : 'bg-red-500/20 text-red-400 border border-red-500/50'
-                                            }`}
-                                    >
-                                        {status.message}
-                                    </motion.div>
-                                )}
+                {/* Neon hover styles */}
+                <style>{`
+                    .social-neon {
+                        border: 1px solid #1a1a2e;
+                        color: #6b7280;
+                        background: transparent;
+                        transition: all 0.1s ease;
+                    }
+                    .social-neon:hover {
+                        color: #00d4ff !important;
+                        border-color: #00d4ff !important;
+                        box-shadow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 30px rgba(0, 212, 255, 0.2), inset 0 0 10px rgba(0, 212, 255, 0.1) !important;
+                        background: rgba(0, 212, 255, 0.06) !important;
+                        transform: translateY(-3px);
+                    }
+                    .social-neon:hover svg {
+                        filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.8));
+                    }
+                `}</style>
 
-                                <button
-                                    type="submit"
-                                    className="w-full px-6 py-4 bg-gradient-to-r from-primary to-secondary rounded-lg font-medium hover:shadow-lg hover:shadow-primary/50 transition-all duration-300 flex items-center justify-center gap-2 group"
-                                >
-                                    <Send size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
-                                    Send Message
-                                </button>
-                            </form>
-                        </motion.div>
-
-                        {/* Social Links & Info */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={isInView ? { opacity: 1, x: 0 } : {}}
-                            transition={{ duration: 0.8, delay: 0.4 }}
-                            className="space-y-8"
-                        >
-                            {/* Call to Action */}
-                            <div className="glass p-8 rounded-2xl">
-                                <h3 className="text-2xl font-bold text-white mb-4">
-                                    Let's Build Something Amazing!
-                                </h3>
-                                <p className="text-white/70 mb-6">
-                                    I'm always open to discussing new projects, creative ideas, or opportunities to be part of your vision.
-                                </p>
-                                <div className="space-y-3 text-white/80">
-                                    <p className="flex items-center gap-3">
-                                        <Mail size={20} className="text-accent" />
-                                        bajpai.connect@gmail.com
-                                    </p>
-                                    <p className="flex items-center gap-3">
-                                        <Linkedin size={20} className="text-accent" />
-                                        Active on LinkedIn
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Social Media Links */}
-                            <div className="glass p-8 rounded-2xl">
-                                <h3 className="text-xl font-bold text-white mb-6">
-                                    Connect With Me
-                                </h3>
-                                <div className="grid grid-cols-4 gap-4">
-                                    {socialLinks.map((social) => (
-                                        <a
-                                            key={social.name}
-                                            href={social.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className={`flex items-center justify-center p-4 glass rounded-lg hover:bg-white/20 transition-all duration-300 ${social.color} group`}
-                                            title={social.name}
-                                        >
-                                            <span className="transform group-hover:scale-110 transition-transform duration-300">
-                                                {social.icon}
-                                            </span>
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
+                {/* Social Icons */}
+                <motion.div
+                    className="flex items-center justify-center gap-4"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.5, delay: 0.6 }}
+                >
+                    {socials.map((social, i) => {
+                        const Icon = social.icon;
+                        return (
+                            <motion.a
+                                key={social.label}
+                                href={social.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="social-neon p-3 rounded-lg"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                                transition={{ duration: 0.3, delay: 0.7 + i * 0.1 }}
+                                aria-label={social.label}
+                            >
+                                <Icon size={20} />
+                            </motion.a>
+                        );
+                    })}
                 </motion.div>
             </div>
         </section>

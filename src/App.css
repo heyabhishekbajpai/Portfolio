@@ -7,8 +7,6 @@
 .app {
     width: 100%;
     min-height: 100vh;
-    background: #000;
+    background: var(--color-bg, #050508);
     overflow-x: hidden;
 }
-
-/* Remove Hero.css styles since we're using Tailwind now */

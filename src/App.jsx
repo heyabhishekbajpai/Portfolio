@@ -7,18 +7,11 @@ import Design from './components/Design'
 import Films from './components/Films'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
-import BlobCursor from './components/Cursor/Cursor'
 import './App.css'
 
 function App() {
     return (
-        <div className="app bg-black min-h-screen">
-            <BlobCursor
-                trailCount={10}
-                sizes={[2.5, 100]}
-                innerSizes={[1, 20]}
-                opacities={[1, 0.5]}
-            />
+        <div className="app min-h-screen" style={{ background: 'var(--color-bg, #050508)' }}>
             <Navbar />
             <Hero />
             <About />

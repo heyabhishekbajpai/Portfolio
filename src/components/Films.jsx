@@ -1,156 +1,347 @@
-import { motion } from 'framer-motion';
-import { useInView } from 'framer-motion';
-import { useRef } from 'react';
-import { Youtube, Play } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { Play, X } from 'lucide-react';
 
+const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+const CHANNEL_ID = 'UClCF9-LRiLuPjXa_oynUYmA';
+const HIDDEN_VIDEO_IDS = ['Nl4fLbFrCWA'];
+
+/* ─── VIDEO MODAL ─── */
+function VideoModal({ film, onClose }) {
+    return (
+        <motion.div
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={onClose}
+        >
+            <div
+                className="absolute inset-0"
+                style={{ background: 'rgba(2, 2, 5, 0.95)', backdropFilter: 'blur(10px)' }}
+            />
+
+            <motion.div
+                className="relative z-10 w-full max-w-4xl"
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Close */}
+                <button
+                    onClick={onClose}
+                    className="absolute -top-12 right-0 p-2 rounded-md transition-all duration-100 hover:bg-white/10"
+                    style={{ color: 'var(--color-muted)', cursor: 'pointer' }}
+                >
+                    <X size={24} />
+                </button>
+
+                {/* Player */}
+                <div
+                    className="w-full rounded-lg overflow-hidden"
+                    style={{
+                        aspectRatio: '16/9',
+                        border: '1px solid var(--color-border)',
+                        boxShadow: '0 0 60px rgba(0, 212, 255, 0.1)',
+                    }}
+                >
+                    <iframe
+                        src={`https://www.youtube.com/embed/${film.videoId}?autoplay=1&rel=0`}
+                        title={film.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                        style={{ border: 'none' }}
+                    />
+                </div>
+
+                {/* Title below */}
+                <p
+                    className="mt-4 text-center text-sm"
+                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text)' }}
+                >
+                    {film.title}
+                </p>
+            </motion.div>
+        </motion.div>
+    );
+}
+
+/* ─── FILM CARD ─── */
+function FilmCard({ film, index, isInView, onPlay }) {
+    return (
+        <motion.div
+            className="group cursor-pointer"
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            onClick={() => onPlay(film)}
+        >
+            {/* Thumbnail */}
+            <div
+                className="relative rounded-lg overflow-hidden mb-3"
+                style={{
+                    aspectRatio: '16/9',
+                    border: '1px solid var(--color-border)',
+                }}
+            >
+                <img
+                    src={film.thumbnail}
+                    alt={film.title}
+                    className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-105"
+                    loading="lazy"
+                />
+
+                {/* Hover overlay */}
+                <div
+                    className="absolute inset-0 transition-all duration-100"
+                    style={{
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        opacity: 0,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
+                >
+                    <div className="flex items-center justify-center h-full">
+                        <div
+                            className="p-4 rounded-full transition-all duration-100"
+                            style={{
+                                background: 'rgba(0, 212, 255, 0.15)',
+                                border: '1px solid rgba(0, 212, 255, 0.4)',
+                            }}
+                        >
+                            <Play size={24} style={{ color: 'var(--color-cyan)' }} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Film grain overlay */}
+                <div className="film-grain" />
+
+                {/* Duration badge */}
+                {film.duration && (
+                    <div
+                        className="absolute bottom-2 right-2 px-2 py-0.5 rounded text-xs"
+                        style={{
+                            background: 'rgba(0, 0, 0, 0.8)',
+                            color: 'var(--color-text)',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.65rem',
+                        }}
+                    >
+                        {film.duration}
+                    </div>
+                )}
+            </div>
+
+            {/* Title */}
+            <h3
+                className="text-sm font-semibold mb-1 transition-colors duration-100 group-hover:text-cyan-400"
+                style={{
+                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--color-text)',
+                    lineHeight: '1.4',
+                }}
+            >
+                {film.title}
+            </h3>
+
+            {/* Published date */}
+            {film.publishedAt && (
+                <p
+                    className="text-xs"
+                    style={{
+                        fontFamily: 'var(--font-mono)',
+                        color: 'var(--color-muted)',
+                        fontSize: '0.7rem',
+                    }}
+                >
+                    {new Date(film.publishedAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                    })}
+                </p>
+            )}
+        </motion.div>
+    );
+}
+
+/* ─── FORMAT DURATION ─── */
+function formatDuration(isoDuration) {
+    if (!isoDuration) return null;
+    const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return null;
+    const hours = match[1] ? `${match[1]}:` : '';
+    const mins = match[2] ? match[2].padStart(hours ? 2 : 1, '0') : '0';
+    const secs = match[3] ? match[3].padStart(2, '0') : '00';
+    return `${hours}${mins}:${secs}`;
+}
+
+/* ─── FILMS SECTION ─── */
 export default function Films() {
     const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
+    const isInView = useInView(ref, { once: true, margin: '-100px' });
+    const [films, setFilms] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [activeFilm, setActiveFilm] = useState(null);
 
-    // Dummy video data - Replace with your actual YouTube videos
-    const featuredVideos = [
-        {
-            id: 1,
-            title: 'Cinematic Short Film',
-            thumbnail: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&h=450&fit=crop',
-            videoUrl: 'https://www.youtube.com/@abhishek.bajpai',
-            views: '10K',
-        },
-        {
-            id: 2,
-            title: 'Behind The Scenes',
-            thumbnail: 'https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?w=800&h=450&fit=crop',
-            videoUrl: 'https://www.youtube.com/@abhishek.bajpai',
-            views: '5K',
-        },
-        {
-            id: 3,
-            title: 'Travel Vlog',
-            thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=450&fit=crop',
-            videoUrl: 'https://www.youtube.com/@abhishek.bajpai',
-            views: '8K',
-        },
-    ];
+    useEffect(() => {
+        async function fetchVideos() {
+            try {
+                // Step 1: Get video list from channel
+                const searchRes = await fetch(
+                    `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=12&order=date&type=video&key=${YOUTUBE_API_KEY}`
+                );
+                const searchData = await searchRes.json();
+
+                if (!searchData.items || searchData.items.length === 0) {
+                    setFilms([]);
+                    setLoading(false);
+                    return;
+                }
+
+                // Step 2: Get video durations
+                const videoIds = searchData.items.map(item => item.id.videoId).join(',');
+                const detailsRes = await fetch(
+                    `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${YOUTUBE_API_KEY}`
+                );
+                const detailsData = await detailsRes.json();
+
+                // Map durations by ID
+                const durationMap = {};
+                if (detailsData.items) {
+                    detailsData.items.forEach(item => {
+                        durationMap[item.id] = formatDuration(item.contentDetails.duration);
+                    });
+                }
+
+                // Combine data
+                const videoList = searchData.items
+                    .filter(item => !HIDDEN_VIDEO_IDS.includes(item.id.videoId))
+                    .map(item => ({
+                        videoId: item.id.videoId,
+                        title: item.snippet.title,
+                        description: item.snippet.description,
+                        thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
+                        publishedAt: item.snippet.publishedAt,
+                        duration: durationMap[item.id.videoId] || null,
+                    }));
+
+                setFilms(videoList);
+            } catch (err) {
+                console.error('Failed to fetch YouTube videos:', err);
+                setError('Failed to load videos');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchVideos();
+    }, []);
 
     return (
-        <section id="films" className="relative py-20 md:py-32 bg-gradient-to-b from-black via-gray-900 to-black">
-            <div className="container mx-auto px-4 md:px-6">
-                <motion.div
-                    ref={ref}
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.8 }}
-                >
-                    {/* Section Title */}
-                    <div className="text-center mb-12 md:mb-16">
-                        <div className="flex items-center justify-center gap-3 mb-4">
-                            <Youtube className="text-red-500" size={40} />
-                            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold">
-                                <span className="gradient-text">Filmmaking & Content</span>
-                            </h2>
-                        </div>
-                        <p className="text-white/70 text-lg max-w-2xl mx-auto mb-4">
-                            Telling stories through the lens
+        <>
+            <section
+                id="films"
+                className="relative py-24 md:py-32 noise-overlay"
+                style={{ background: 'var(--color-surface)' }}
+            >
+                <div className="section-divider" />
+
+                <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pt-16" ref={ref}>
+                    {/* Section Label */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={isInView ? { opacity: 1, y: 0 } : {}}
+                        transition={{ duration: 0.5 }}
+                    >
+                        <p className="section-label" style={{ color: 'var(--color-cyan)' }}>
+                            {'// FILMS'}
                         </p>
-                        <div className="w-24 h-1 bg-gradient-to-r from-primary via-secondary to-accent mx-auto rounded-full" />
-                    </div>
+                        <h2
+                            className="text-3xl md:text-4xl font-bold mb-12"
+                            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
+                        >
+                            🎬 play_reel<span style={{ color: 'var(--color-cyan)' }}>()</span>
+                        </h2>
+                    </motion.div>
 
-                    {/* YouTube Channel Card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={isInView ? { opacity: 1, y: 0 } : {}}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        className="max-w-4xl mx-auto mb-16"
-                    >
-                        <div className="glass p-6 md:p-8 rounded-2xl flex flex-col md:flex-row items-center gap-6 hover:bg-white/10 transition-all duration-300">
-                            <div className="flex-shrink-0">
-                                <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center">
-                                    <Youtube size={48} className="text-white" />
-                                </div>
-                            </div>
-                            <div className="flex-1 text-center md:text-left">
-                                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                                    Abhishek Bajpai
-                                </h3>
-                                <p className="text-white/70 mb-4">
-                                    Cinematic vlogs, short films, and creative content
-                                </p>
-                                <a
-                                    href="https://www.youtube.com/@abhishek.bajpai"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-red-600/50"
+                    {/* Loading State */}
+                    {loading && (
+                        <div className="flex items-center justify-center py-20">
+                            <div className="text-center">
+                                <motion.div
+                                    animate={{ opacity: [0.3, 1, 0.3] }}
+                                    transition={{ duration: 1.5, repeat: Infinity }}
+                                    style={{
+                                        fontFamily: 'var(--font-mono)',
+                                        fontSize: '0.85rem',
+                                        color: 'var(--color-cyan)',
+                                    }}
                                 >
-                                    <Youtube size={20} />
-                                    Subscribe on YouTube
-                                </a>
+                                    {'>'} fetching videos from YouTube...
+                                    <span className="cursor-blink" />
+                                </motion.div>
                             </div>
                         </div>
-                    </motion.div>
+                    )}
 
-                    {/* Featured Videos Grid */}
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                        {featuredVideos.map((video, idx) => (
-                            <motion.a
-                                key={video.id}
-                                href={video.videoUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                                transition={{ duration: 0.6, delay: 0.4 + idx * 0.1 }}
-                                className="group glass rounded-2xl overflow-hidden hover:bg-white/10 transition-all duration-300"
-                            >
-                                {/* Video Thumbnail */}
-                                <div className="relative aspect-video bg-gray-800 overflow-hidden">
-                                    <img
-                                        src={video.thumbnail}
-                                        alt={video.title}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                    />
-
-                                    {/* Play Button Overlay */}
-                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                                            <Play size={28} className="text-white ml-1" fill="white" />
-                                        </div>
-                                    </div>
-
-                                    {/* Views Badge */}
-                                    <div className="absolute bottom-3 right-3 px-3 py-1 bg-black/80 rounded-lg text-white text-sm font-medium">
-                                        {video.views} views
-                                    </div>
-                                </div>
-
-                                {/* Video Info */}
-                                <div className="p-4">
-                                    <h3 className="text-white font-bold text-lg group-hover:text-red-400 transition-colors duration-300">
-                                        {video.title}
-                                    </h3>
-                                </div>
-                            </motion.a>
-                        ))}
-                    </div>
-
-                    {/* View Channel Button */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={isInView ? { opacity: 1, y: 0 } : {}}
-                        transition={{ duration: 0.8, delay: 0.8 }}
-                        className="text-center mt-12"
-                    >
-                        <a
-                            href="https://www.youtube.com/@abhishek.bajpai"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-8 py-4 glass hover:bg-white/20 rounded-lg font-medium transition-all duration-300 text-lg"
+                    {/* Error State */}
+                    {error && (
+                        <div
+                            className="text-center py-20"
+                            style={{
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: '0.85rem',
+                                color: '#ff6b6b',
+                            }}
                         >
-                            <Youtube size={24} className="text-red-500" />
-                            View Full Channel
-                        </a>
-                    </motion.div>
-                </motion.div>
-            </div>
-        </section>
+                            {'>'} error: {error}
+                        </div>
+                    )}
+
+                    {/* Video Grid */}
+                    {!loading && !error && films.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {films.map((film, i) => (
+                                <FilmCard
+                                    key={film.videoId}
+                                    film={film}
+                                    index={i}
+                                    isInView={isInView}
+                                    onPlay={setActiveFilm}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Empty State */}
+                    {!loading && !error && films.length === 0 && (
+                        <div
+                            className="text-center py-20"
+                            style={{
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: '0.85rem',
+                                color: 'var(--color-muted)',
+                            }}
+                        >
+                            {'>'} no videos found.
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            {/* Video Modal */}
+            <AnimatePresence>
+                {activeFilm && (
+                    <VideoModal film={activeFilm} onClose={() => setActiveFilm(null)} />
+                )}
+            </AnimatePresence>
+        </>
     );
 }

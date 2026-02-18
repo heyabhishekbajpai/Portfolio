@@ -4,14 +4,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── CSS VARIABLES ─── */
+:root {
+    --color-bg: #050508;
+    --color-surface: #0d0d14;
+    --color-border: #1a1a2e;
+    --color-cyan: #00d4ff;
+    --color-purple: #7c3aed;
+    --color-text: #f0f0f0;
+    --color-muted: #6b7280;
+    --color-glow: rgba(0, 212, 255, 0.15);
+    --font-mono: 'JetBrains Mono', 'Space Mono', monospace;
+    --font-display: 'Space Mono', 'JetBrains Mono', monospace;
+    --font-body: 'DM Sans', sans-serif;
+}
+
 @layer base {
     body {
-        @apply m-0 font-sans antialiased;
+        @apply m-0 antialiased;
         scroll-behavior: smooth;
+        font-family: var(--font-body);
+        background: var(--color-bg);
+        color: var(--color-text);
     }
 
     * {
         @apply scroll-smooth;
+    }
+
+    ::selection {
+        background: rgba(0, 212, 255, 0.3);
+        color: #fff;
     }
 }
 
@@ -25,5 +48,240 @@
 
     .gradient-text {
         @apply bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent;
+    }
+}
+
+/* ─── SECTION LABEL STYLE ─── */
+.section-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin-bottom: 0.5rem;
+}
+
+/* ─── CYBER PANEL ─── */
+.cyber-panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.cyber-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 212, 255, 0.015) 2px,
+            rgba(0, 212, 255, 0.015) 4px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.cyber-panel:hover {
+    border-color: rgba(0, 212, 255, 0.3);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.08), inset 0 0 20px rgba(0, 212, 255, 0.03);
+}
+
+/* ─── NOISE TEXTURE OVERLAY ─── */
+.noise-overlay {
+    position: relative;
+}
+
+.noise-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ─── SCANLINE OVERLAY ─── */
+.scanline-overlay {
+    position: relative;
+}
+
+.scanline-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 212, 255, 0.01) 2px,
+            rgba(0, 212, 255, 0.01) 4px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ─── TERMINAL WINDOW ─── */
+.terminal-window {
+    background: #0a0a12;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: var(--font-mono);
+}
+
+.terminal-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(13, 13, 20, 0.8);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.terminal-dot.red {
+    background: #ff5f57;
+}
+
+.terminal-dot.yellow {
+    background: #febc2e;
+}
+
+.terminal-dot.green {
+    background: #28c840;
+}
+
+.terminal-title {
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    margin-left: 8px;
+    font-family: var(--font-mono);
+}
+
+.terminal-body {
+    padding: 1.5rem;
+    font-size: 0.875rem;
+    line-height: 1.8;
+    color: var(--color-text);
+}
+
+/* ─── GLOW BORDER ─── */
+.glow-border {
+    transition: all 0.1s ease;
+}
+
+.glow-border:hover {
+    border-color: rgba(0, 212, 255, 0.4);
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.1), 0 0 50px rgba(0, 212, 255, 0.05);
+}
+
+/* ─── BENTO CARD ─── */
+.bento-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.1s ease;
+}
+
+.bento-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 212, 255, 0.01) 2px,
+            rgba(0, 212, 255, 0.01) 4px);
+    pointer-events: none;
+}
+
+.bento-card:hover {
+    border-color: rgba(0, 212, 255, 0.4);
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+/* ─── BLINKING CURSOR ─── */
+.cursor-blink {
+    display: inline-block;
+    width: 2px;
+    height: 1.1em;
+    background: var(--color-cyan);
+    margin-left: 2px;
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+/* ─── FILM GRAIN ─── */
+.film-grain {
+    position: relative;
+}
+
+.film-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 2;
+}
+
+/* ─── SECTION DIVIDER ─── */
+.section-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+    margin: 0;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 212, 255, 0.3);
+}
+
+/* ─── RESPONSIVE UTILS ─── */
+@media (max-width: 768px) {
+    .terminal-body {
+        padding: 1rem;
+        font-size: 0.75rem;
     }
 }

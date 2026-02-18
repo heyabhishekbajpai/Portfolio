@@ -1,167 +1,252 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { useInView } from 'framer-motion';
-import { useRef, useState } from 'react';
-import { X, Palette } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { X, Eye } from 'lucide-react';
+
+const designWorks = [
+    {
+        title: 'Brand Identity — Aurora',
+        category: 'Branding',
+        image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=800&fit=crop',
+    },
+    {
+        title: 'Mobile App UI — Fitness',
+        category: 'UI/UX',
+        image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=400&fit=crop',
+    },
+    {
+        title: 'Poster Design — Neon',
+        category: 'Print',
+        image: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=600&h=700&fit=crop',
+    },
+    {
+        title: 'Dashboard UI — Analytics',
+        category: 'UI/UX',
+        image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop',
+    },
+    {
+        title: 'Typography — Experimental',
+        category: 'Type Design',
+        image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&h=600&fit=crop',
+    },
+    {
+        title: 'Movie Poster — Midnight',
+        category: 'Print',
+        image: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=600&h=800&fit=crop',
+    },
+    {
+        title: 'Web Design — Portfolio',
+        category: 'Web',
+        image: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=600&h=400&fit=crop',
+    },
+    {
+        title: 'Logo Design — Minimal',
+        category: 'Branding',
+        image: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=600&h=500&fit=crop',
+    },
+];
+
+function DesignCard({ work, index, isInView, onOpen }) {
+    return (
+        <motion.div
+            className="group relative cursor-pointer overflow-hidden rounded-lg"
+            style={{
+                border: '1px solid rgba(124, 58, 237, 0.15)',
+                breakInside: 'avoid',
+                marginBottom: '16px',
+            }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.08 * index }}
+            onClick={() => onOpen(work)}
+            whileHover={{ scale: 1.01 }}
+        >
+            <img
+                src={work.image}
+                alt={work.title}
+                className="w-full h-auto block transition-transform duration-150 group-hover:scale-[1.03]"
+                loading="lazy"
+            />
+
+            {/* Hover Overlay */}
+            <div
+                className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-100"
+                style={{
+                    background: 'rgba(5, 5, 8, 0.8)',
+                    backdropFilter: 'blur(4px)',
+                }}
+            >
+                <Eye size={24} style={{ color: 'var(--color-cyan)', marginBottom: '12px' }} />
+                <h4
+                    className="text-sm font-semibold text-center px-4"
+                    style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text)' }}
+                >
+                    {work.title}
+                </h4>
+                <span
+                    className="text-xs mt-2 px-3 py-1 rounded"
+                    style={{
+                        fontFamily: 'var(--font-mono)',
+                        color: 'var(--color-purple)',
+                        background: 'rgba(124, 58, 237, 0.15)',
+                        border: '1px solid rgba(124, 58, 237, 0.2)',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        fontSize: '0.65rem',
+                    }}
+                >
+                    {work.category}
+                </span>
+            </div>
+        </motion.div>
+    );
+}
+
+function Lightbox({ work, onClose }) {
+    if (!work) return null;
+
+    return (
+        <motion.div
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={onClose}
+        >
+            {/* Backdrop */}
+            <div
+                className="absolute inset-0"
+                style={{ background: 'rgba(0, 0, 0, 0.92)', backdropFilter: 'blur(8px)' }}
+            />
+
+            {/* Content */}
+            <motion.div
+                className="relative z-10 max-w-3xl w-full"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button
+                    onClick={onClose}
+                    className="absolute -top-12 right-0 p-2 rounded-md transition-all duration-100 hover:bg-white/10"
+                    style={{ color: 'var(--color-muted)' }}
+                >
+                    <X size={24} />
+                </button>
+
+                <img
+                    src={work.image}
+                    alt={work.title}
+                    className="w-full h-auto rounded-lg"
+                    style={{
+                        maxHeight: '80vh',
+                        objectFit: 'contain',
+                        border: '1px solid var(--color-border)',
+                        boxShadow: '0 0 60px rgba(124, 58, 237, 0.1)',
+                    }}
+                />
+
+                <div className="mt-4 text-center">
+                    <h3
+                        className="text-lg font-bold"
+                        style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text)' }}
+                    >
+                        {work.title}
+                    </h3>
+                    <span
+                        className="inline-block text-xs mt-2 px-3 py-1 rounded"
+                        style={{
+                            fontFamily: 'var(--font-mono)',
+                            color: 'var(--color-purple)',
+                            background: 'rgba(124, 58, 237, 0.15)',
+                            border: '1px solid rgba(124, 58, 237, 0.2)',
+                            letterSpacing: '0.1em',
+                            textTransform: 'uppercase',
+                            fontSize: '0.65rem',
+                        }}
+                    >
+                        {work.category}
+                    </span>
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+}
 
 export default function Design() {
     const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [activeCategory, setActiveCategory] = useState('All');
-
-    // Dummy design portfolio - Replace with your actual Canva designs
-    const designs = [
-        {
-            id: 1,
-            title: 'Social Media Post 1',
-            category: 'Social Media',
-            image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=800&fit=crop',
-        },
-        {
-            id: 2,
-            title: 'Brand Poster',
-            category: 'Posters',
-            image: 'https://images.unsplash.com/photo-1634942537034-2531766767d1?w=800&h=800&fit=crop',
-        },
-        {
-            id: 3,
-            title: 'Logo Design',
-            category: 'Branding',
-            image: 'https://images.unsplash.com/photo-1626785774625-ddcddc3445e9?w=800&h=800&fit=crop',
-        },
-        {
-            id: 4,
-            title: 'Event Flyer',
-            category: 'Posters',
-            image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=800&fit=crop',
-        },
-        {
-            id: 5,
-            title: 'Instagram Story',
-            category: 'Social Media',
-            image: 'https://images.unsplash.com/photo-1621609764180-2ca554a9d6f2?w=800&h=800&fit=crop',
-        },
-        {
-            id: 6,
-            title: 'Business Card',
-            category: 'Branding',
-            image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=800&fit=crop',
-        },
-    ];
-
-    const categories = ['All', 'Posters', 'Social Media', 'Branding'];
-
-    const filteredDesigns = activeCategory === 'All'
-        ? designs
-        : designs.filter(design => design.category === activeCategory);
+    const isInView = useInView(ref, { once: true, margin: '-100px' });
+    const [activeWork, setActiveWork] = useState(null);
 
     return (
-        <section id="design" className="relative py-20 md:py-32 bg-black">
-            <div className="container mx-auto px-4 md:px-6">
-                <motion.div
-                    ref={ref}
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.8 }}
-                >
-                    {/* Section Title */}
-                    <div className="text-center mb-12 md:mb-16">
-                        <div className="flex items-center justify-center gap-3 mb-4">
-                            <Palette className="text-accent" size={40} />
-                            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold">
-                                <span className="gradient-text">Design Portfolio</span>
-                            </h2>
-                        </div>
-                        <p className="text-white/70 text-lg max-w-2xl mx-auto mb-4">
-                            Creating visual experiences with Canva
-                        </p>
-                        <div className="w-24 h-1 bg-gradient-to-r from-primary via-secondary to-accent mx-auto rounded-full" />
-                    </div>
+        <>
+            <section
+                id="design"
+                className="relative py-24 md:py-32 noise-overlay"
+                style={{ background: 'var(--color-bg)' }}
+            >
+                <div className="section-divider" />
 
-                    {/* Category Filter */}
-                    <div className="flex flex-wrap justify-center gap-3 mb-12">
-                        {categories.map((category) => (
-                            <button
-                                key={category}
-                                onClick={() => setActiveCategory(category)}
-                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 ${activeCategory === category
-                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50'
-                                        : 'glass text-white/70 hover:text-white hover:bg-white/10'
-                                    }`}
-                            >
-                                {category}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Design Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-                        {filteredDesigns.map((design, idx) => (
-                            <motion.div
-                                key={design.id}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                                className="group relative aspect-square cursor-pointer overflow-hidden rounded-2xl glass"
-                                onClick={() => setSelectedImage(design)}
-                            >
-                                <img
-                                    src={design.image}
-                                    alt={design.title}
-                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                />
-
-                                {/* Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-6">
-                                    <h3 className="text-white font-bold text-xl mb-2">{design.title}</h3>
-                                    <span className="text-accent text-sm font-medium">{design.category}</span>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
-            </div>
-
-            {/* Lightbox Modal */}
-            <AnimatePresence>
-                {selectedImage && (
+                <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pt-16" ref={ref}>
+                    {/* Section Label */}
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-                        onClick={() => setSelectedImage(null)}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={isInView ? { opacity: 1, y: 0 } : {}}
+                        transition={{ duration: 0.5 }}
                     >
-                        <motion.button
-                            className="absolute top-4 right-4 p-2 glass rounded-full hover:bg-white/20 transition-all duration-300"
-                            onClick={() => setSelectedImage(null)}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
+                        <p
+                            className="section-label"
+                            style={{ color: '#7c3aed' }}
                         >
-                            <X className="text-white" size={24} />
-                        </motion.button>
-
-                        <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.8, opacity: 0 }}
-                            transition={{ type: "spring", damping: 20 }}
-                            className="max-w-4xl max-h-[90vh] relative"
-                            onClick={(e) => e.stopPropagation()}
+                            {'// DESIGN_WORK'}
+                        </p>
+                        <h2
+                            className="text-3xl md:text-4xl font-bold mb-12"
+                            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
                         >
-                            <img
-                                src={selectedImage.image}
-                                alt={selectedImage.title}
-                                className="w-full h-full object-contain rounded-2xl shadow-2xl"
-                            />
-                            <div className="glass mt-4 p-4 rounded-lg text-center">
-                                <h3 className="text-white font-bold text-xl">{selectedImage.title}</h3>
-                                <p className="text-accent text-sm mt-1">{selectedImage.category}</p>
-                            </div>
-                        </motion.div>
+                            visual_gallery<span style={{ color: '#7c3aed' }}>()</span>
+                        </h2>
                     </motion.div>
+
+                    {/* Masonry Grid */}
+                    <div
+                        style={{
+                            columnCount: 3,
+                            columnGap: '16px',
+                        }}
+                        className="masonry-grid"
+                    >
+                        {designWorks.map((work, i) => (
+                            <DesignCard
+                                key={work.title}
+                                work={work}
+                                index={i}
+                                isInView={isInView}
+                                onOpen={setActiveWork}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Responsive override */}
+                    <style>{`
+                        @media (max-width: 1024px) {
+                            .masonry-grid { column-count: 2 !important; }
+                        }
+                        @media (max-width: 640px) {
+                            .masonry-grid { column-count: 1 !important; }
+                        }
+                    `}</style>
+                </div>
+            </section>
+
+            {/* Lightbox */}
+            <AnimatePresence>
+                {activeWork && (
+                    <Lightbox work={activeWork} onClose={() => setActiveWork(null)} />
                 )}
             </AnimatePresence>
-        </section>
+        </>
     );
 }

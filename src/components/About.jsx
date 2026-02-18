@@ -1,107 +1,157 @@
-import { motion } from 'framer-motion';
-import { useInView } from 'framer-motion';
-import { useRef } from 'react';
-import { Download, Linkedin } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { Code2, Film, Lightbulb, Zap } from 'lucide-react';
+
+const ABOUT_TEXT = `// Hey there! I'm Abhishek — a developer, designer,
+// and filmmaker who loves building things that
+// live at the intersection of technology and art.
+//
+// I code full-stack apps, direct short films,
+// and design interfaces that feel alive.
+// Currently exploring the space where
+// creativity meets engineering.`;
+
+const stats = [
+    { value: '03+', label: 'Years Coding', icon: Code2 },
+    { value: '10+', label: 'Films Made', icon: Film },
+    { value: '20+', label: 'Projects Built', icon: Lightbulb },
+    { value: '∞', label: 'Ideas Brewing', icon: Zap },
+];
+
+function TypewriterText({ text, speed = 25, startTyping }) {
+    const [displayedText, setDisplayedText] = useState('');
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        if (!startTyping) return;
+        if (currentIndex < text.length) {
+            const timeout = setTimeout(() => {
+                setDisplayedText(prev => prev + text[currentIndex]);
+                setCurrentIndex(prev => prev + 1);
+            }, speed);
+            return () => clearTimeout(timeout);
+        }
+    }, [currentIndex, text, speed, startTyping]);
+
+    return (
+        <span>
+            {displayedText}
+            {currentIndex < text.length && startTyping && <span className="cursor-blink" />}
+            {currentIndex >= text.length && <span className="cursor-blink" />}
+        </span>
+    );
+}
 
 export default function About() {
     const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
+    const isInView = useInView(ref, { once: true, margin: '-100px' });
 
     return (
-        <section id="about" className="relative py-20 md:py-32 bg-gradient-to-b from-black via-gray-900 to-black">
-            <div className="container mx-auto px-4 md:px-6">
+        <section
+            id="about"
+            className="relative py-24 md:py-32 noise-overlay"
+            style={{ background: 'var(--color-bg)' }}
+        >
+            <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6" ref={ref}>
+                {/* Section Label */}
                 <motion.div
-                    ref={ref}
-                    initial={{ opacity: 0, y: 50 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.8 }}
+                    transition={{ duration: 0.5 }}
                 >
-                    {/* Section Title */}
-                    <div className="text-center mb-12 md:mb-16">
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-                            <span className="gradient-text">About Me</span>
-                        </h2>
-                        <div className="w-24 h-1 bg-gradient-to-r from-primary via-secondary to-accent mx-auto rounded-full" />
-                    </div>
-
-                    {/* Content Grid */}
-                    <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
-
-                        {/* Photo with Creative Cutout */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -50 }}
-                            animate={isInView ? { opacity: 1, x: 0 } : {}}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                            className="flex justify-center"
-                        >
-                            <div className="relative w-64 h-80 md:w-80 md:h-96">
-                                {/* Glow effect behind */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent blur-2xl opacity-30 rounded-3xl" />
-
-                                {/* Image with creative polygon mask - Octagon shape */}
-                                <div className="relative w-full h-full">
-                                    <img
-                                        src="/bajpai.png"
-                                        alt="Abhishek Bajpai"
-                                        className="w-full h-full object-cover object-top"
-                                        style={{
-                                            clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
-                                            filter: 'drop-shadow(0 20px 40px rgba(57, 21, 172, 0.4))'
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Text Content */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={isInView ? { opacity: 1, x: 0 } : {}}
-                            transition={{ duration: 0.8, delay: 0.4 }}
-                            className="space-y-6 text-white/80"
-                            style={{ fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif' }}
-                        >
-                            <p className="text-lg md:text-xl leading-relaxed">
-                                Hi! I'm <span className="text-white font-semibold">Abhishek Bajpai</span>, a Computer Science student with a passion for building full-stack applications and solving complex problems.
-                            </p>
-
-                            <p className="text-base md:text-lg leading-relaxed">
-                                I'm deeply interested in <span className="text-secondary font-medium">Data Structures & Algorithms in Java</span>, constantly challenging myself to think critically and optimize solutions.
-                            </p>
-
-                            <p className="text-base md:text-lg leading-relaxed">
-                                Beyond code, I love creating <span className="text-accent font-medium">visual designs on Canva</span> and telling stories through <span className="text-accent font-medium">cinematic filmmaking</span>. My creative side drives me to build experiences that are not just functional, but beautiful.
-                            </p>
-
-                            <p className="text-base md:text-lg leading-relaxed">
-                                I'm <span className="text-primary font-medium">active on LinkedIn</span>, where I share my journey, connect with like-minded developers, and stay updated with the tech community.
-                            </p>
-
-                            {/* Buttons */}
-                            <div className="flex flex-wrap gap-4 pt-4">
-                                <a
-                                    href="https://drive.google.com/file/d/15B5180ZwJdNb2vg9UqPUTQoKdpRtGi_D/view?usp=sharing"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="glass px-6 py-3 rounded-lg font-medium hover:bg-white/10 transition-all duration-300 flex items-center gap-2 group"
-                                >
-                                    <Download size={20} className="group-hover:animate-bounce" />
-                                    Download Resume
-                                </a>
-
-                                <a
-                                    href="https://www.linkedin.com/in/heybajpai/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="bg-gradient-to-r from-primary to-secondary px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-primary/50 transition-all duration-300 flex items-center gap-2"
-                                >
-                                    <Linkedin size={20} />
-                                    LinkedIn Profile
-                                </a>
-                            </div>
-                        </motion.div>
-                    </div>
+                    <p className="section-label" style={{ color: 'var(--color-cyan)' }}>
+                        {'// ABOUT_ME'}
+                    </p>
+                    <h2
+                        className="text-3xl md:text-4xl font-bold mb-12"
+                        style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
+                    >
+                        who_am_i<span style={{ color: 'var(--color-cyan)' }}>()</span>
+                    </h2>
                 </motion.div>
+
+                {/* Two Column Layout */}
+                <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
+                    {/* Left: Terminal Card Bio */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -30 }}
+                        animate={isInView ? { opacity: 1, x: 0 } : {}}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                    >
+                        <div className="terminal-window">
+                            <div className="terminal-titlebar">
+                                <div className="terminal-dot red" />
+                                <div className="terminal-dot yellow" />
+                                <div className="terminal-dot green" />
+                                <span className="terminal-title">about.md — ~/portfolio</span>
+                            </div>
+                            <div className="terminal-body" style={{ minHeight: '280px' }}>
+                                <pre
+                                    style={{
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word',
+                                        fontFamily: 'var(--font-mono)',
+                                        fontSize: '0.85rem',
+                                        lineHeight: '1.9',
+                                        color: '#8b949e',
+                                        margin: 0,
+                                    }}
+                                >
+                                    <TypewriterText text={ABOUT_TEXT} speed={18} startTyping={isInView} />
+                                </pre>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Right: Stat Grid */}
+                    <motion.div
+                        className="grid grid-cols-2 gap-4"
+                        initial={{ opacity: 0, x: 30 }}
+                        animate={isInView ? { opacity: 1, x: 0 } : {}}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                    >
+                        {stats.map((stat, i) => {
+                            const Icon = stat.icon;
+                            return (
+                                <motion.div
+                                    key={stat.label}
+                                    className="cyber-panel p-5 md:p-6 flex flex-col items-center justify-center text-center gap-3 glow-border"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                                    transition={{ duration: 0.5, delay: 0.5 + i * 0.1 }}
+                                    whileHover={{ scale: 1.03 }}
+                                >
+                                    <div
+                                        className="relative z-10 p-2 rounded-md"
+                                        style={{ background: 'rgba(0, 212, 255, 0.08)' }}
+                                    >
+                                        <Icon size={20} style={{ color: 'var(--color-cyan)' }} />
+                                    </div>
+                                    <span
+                                        className="relative z-10 text-2xl md:text-3xl font-bold"
+                                        style={{
+                                            fontFamily: 'var(--font-mono)',
+                                            color: 'var(--color-cyan)',
+                                            textShadow: '0 0 20px rgba(0, 212, 255, 0.3)',
+                                        }}
+                                    >
+                                        {stat.value}
+                                    </span>
+                                    <span
+                                        className="relative z-10 text-xs uppercase tracking-wider"
+                                        style={{
+                                            fontFamily: 'var(--font-mono)',
+                                            color: 'var(--color-muted)',
+                                            letterSpacing: '0.15em',
+                                        }}
+                                    >
+                                        {stat.label}
+                                    </span>
+                                </motion.div>
+                            );
+                        })}
+                    </motion.div>
+                </div>
             </div>
         </section>
     );
