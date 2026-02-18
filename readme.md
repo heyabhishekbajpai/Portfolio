@@ -3,7 +3,7 @@ This repository is currently the home of my personal portfolio project. While th
 
 
 👨‍💻 About the Author
-I'm Abhishek Bajpai, a sophomore Computer Science student and a Smart India Hackathon participant. I’m passionate about building AI-driven solutions and exploring the world of automation.
+I'm Abhishek Bajpai, a sophomore Computer Science student. I’m passionate about building AI-driven solutions and exploring the world of automation.
 
 While the "kitchen" is busy, feel free to connect with me elsewhere:
 
