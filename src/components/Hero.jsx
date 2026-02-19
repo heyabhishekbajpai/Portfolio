@@ -1,169 +1,347 @@
-import { motion } from 'framer-motion';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { ChevronDown } from 'lucide-react';
 import Aurora from './Aurora';
-import RotatingText from './RotatingText';
+
+const TOTAL_FRAMES = 94;
+const SCALE = 0.65;
+const GLOW_SCALE = 1.4;
+const GLOW_BLUR = 40;
+const GLOW_OPACITY = 0.6;
+// 600vh gives smooth scroll runway for 94 frames
+const HERO_HEIGHT_VH = 300;
+
+function getFramePath(index) {
+    const padded = String(index).padStart(2, '0');
+    return `/video_portfolio/portfolio_video${padded}.png`;
+}
 
 export default function Hero() {
+    const heroRef = useRef(null);       // the tall outer section
+    const wrapperRef = useRef(null);    // the 100vh panel we want to "pin"
+    const mainCanvasRef = useRef(null);
+    const glowCanvasRef = useRef(null);
+    const framesRef = useRef([]);
+    const currentFrameRef = useRef(0);
+    const rafRef = useRef(null);
+
+    const [loaded, setLoaded] = useState(false);
+    const [loadProgress, setLoadProgress] = useState(0);
+    const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+
     const scrollToNext = () => {
-        const aboutSection = document.querySelector('#about');
-        if (aboutSection) {
-            aboutSection.scrollIntoView({ behavior: 'smooth' });
-        }
+        document.querySelector('#about')?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // ─── Preload frames ───────────────────────────────────────────────────────
+    useEffect(() => {
+        let cancelled = false;
+        let loadedCount = 0;
+        const images = new Array(TOTAL_FRAMES);
+
+        const onLoad = () => {
+            loadedCount++;
+            if (!cancelled) setLoadProgress(Math.round((loadedCount / TOTAL_FRAMES) * 100));
+            if (loadedCount === TOTAL_FRAMES && !cancelled) {
+                framesRef.current = images;
+                const sample = images[1] || images[0];
+                if (sample.naturalWidth && sample.naturalHeight) {
+                    let w = Math.round(sample.naturalWidth * SCALE);
+                    let h = Math.round(sample.naturalHeight * SCALE);
+                    if (window.innerWidth < 768) {
+                        const mw = Math.round(window.innerWidth * 0.9);
+                        h = Math.round(mw * (h / w));
+                        w = mw;
+                    }
+                    setCanvasSize({ width: w, height: h });
+                }
+                setLoaded(true);
+            }
+        };
+
+        for (let i = 0; i < TOTAL_FRAMES; i++) {
+            const img = new Image();
+            img.src = getFramePath(i);
+            img.onload = onLoad;
+            img.onerror = onLoad;
+            images[i] = img;
+        }
+        return () => { cancelled = true; };
+    }, []);
+
+    // ─── Draw a frame ─────────────────────────────────────────────────────────
+    const drawFrame = useCallback((index) => {
+        const frames = framesRef.current;
+        if (!frames.length || !frames[index]) return;
+        const frame = frames[index];
+        if (!frame.naturalWidth) return;
+
+        const main = mainCanvasRef.current;
+        const glow = glowCanvasRef.current;
+        if (!main || !glow) return;
+
+        const mCtx = main.getContext('2d');
+        mCtx.clearRect(0, 0, main.width, main.height);
+        mCtx.drawImage(frame, 0, 0, main.width, main.height);
+
+        const gCtx = glow.getContext('2d');
+        gCtx.clearRect(0, 0, glow.width, glow.height);
+        gCtx.drawImage(frame, 0, 0, glow.width, glow.height);
+    }, []);
+
+    // ─── JS-polyfilled sticky + frame scrubbing ───────────────────────────────
+    // CSS `position: sticky` is broken when ANY ancestor has overflow:hidden/auto.
+    // The parent `.app` div has `overflow-x: hidden`, so we mimic sticky manually.
+    useEffect(() => {
+        if (!loaded) return;
+        drawFrame(0);
+
+        const pin = () => {
+            const hero = heroRef.current;
+            const wrapper = wrapperRef.current;
+            if (!hero || !wrapper) return;
+
+            const heroTop = hero.offsetTop;
+            const heroH = hero.offsetHeight;
+            const vh = window.innerHeight;
+            const sy = window.scrollY;
+            const scrollable = heroH - vh;
+
+            // ── Polyfill sticky ──
+            if (sy <= heroTop) {
+                // Above hero: sit at the natural top of the section
+                wrapper.style.position = 'absolute';
+                wrapper.style.top = '0px';
+                wrapper.style.bottom = '';
+            } else if (sy >= heroTop + scrollable) {
+                // Beyond hero: anchor to bottom of section
+                wrapper.style.position = 'absolute';
+                wrapper.style.top = `${scrollable}px`;
+                wrapper.style.bottom = '';
+            } else {
+                // Inside hero scroll range: fix to viewport
+                wrapper.style.position = 'fixed';
+                wrapper.style.top = '0px';
+                wrapper.style.bottom = '';
+            }
+
+            // ── Frame index ──
+            if (scrollable <= 0) return;
+            const progress = Math.max(0, Math.min(1, (sy - heroTop) / scrollable));
+            const frameIndex = Math.min(93, Math.floor(progress * 93));
+            if (frameIndex !== currentFrameRef.current) {
+                currentFrameRef.current = frameIndex;
+                drawFrame(frameIndex);
+            }
+        };
+
+        const onScroll = () => {
+            if (rafRef.current) return;
+            rafRef.current = requestAnimationFrame(() => {
+                rafRef.current = null;
+                pin();
+            });
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', pin, { passive: true });
+        pin(); // run once on mount
+
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', pin);
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        };
+    }, [loaded, drawFrame]);
+
     return (
-        <section id="home" style={{ position: 'relative', width: '100%', minHeight: '100vh', background: '#000', color: '#fff', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {/* Aurora Background Layer */}
-            <Aurora
-                colorStops={['#3915ac', '#785bec', '#21a2f2']}
-                amplitude={0.40}
-                blend={0.45}
-                speed={1.0}
-            />
+        /*
+         * Outer section: provides the 600vh scroll runway.
+         * position: relative so the JS-polyfilled wrapper can be absolute inside it.
+         */
+        <section
+            id="home"
+            ref={heroRef}
+            style={{
+                position: 'relative',
+                width: '100%',
+                height: `${HERO_HEIGHT_VH}vh`,
+                background: '#000',
+            }}
+        >
+            {/*
+             * wrapperRef: the 100vh panel that looks "pinned".
+             * Starts as position:absolute top:0; scroll handler switches it to
+             * position:fixed while the user is inside the hero scroll range,
+             * then back to absolute anchored at the bottom of the section.
+             */}
+            <div
+                ref={wrapperRef}
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100vh',
+                    overflow: 'hidden',
+                }}
+            >
+                {/* Aurora — fills the pinned panel */}
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 1,
+                    pointerEvents: 'none',
+                    display: 'none', // temporarily hidden — change to 'block' to restore
+                }}>
+                    <Aurora
+                        colorStops={['#3915ac', '#785bec', '#21a2f2']}
+                        amplitude={0.40}
+                        blend={0.45}
+                        speed={1.0}
+                    />
+                </div>
 
-            {/* Hero Content Layer */}
-            <div style={{ position: 'relative', zIndex: 10, maxWidth: '1280px', margin: '0 auto', padding: '0 1.5rem', width: '100%' }}>
-                {/* Grid Layout: Text Left, Image Right */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', alignItems: 'center' }}>
-
-                    {/* Left Side - Text Content */}
-                    <motion.div
-                        style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}
-                        initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                    >
-                        {/* Greeting */}
-                        <motion.p
+                {!loaded ? (
+                    /* Loading spinner — centred */
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        zIndex: 10,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '1rem',
+                    }}>
+                        <div style={{
+                            width: '48px',
+                            height: '48px',
+                            border: '3px solid rgba(255,255,255,0.15)',
+                            borderTopColor: '#785bec',
+                            borderRadius: '50%',
+                            animation: 'heroSpinner 0.8s linear infinite',
+                        }} />
+                        <span style={{
+                            color: 'rgba(255,255,255,0.6)',
+                            fontSize: '0.875rem',
+                            fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+                            letterSpacing: '0.05em',
+                        }}>
+                            {loadProgress}%
+                        </span>
+                    </div>
+                ) : (
+                    <>
+                        {/* Fullscreen ambient glow — draws current frame blurred across entire viewport */}
+                        <canvas
+                            ref={glowCanvasRef}
+                            width={canvasSize.width}
+                            height={canvasSize.height}
                             style={{
-                                fontSize: 'clamp(1.5rem, 4vw, 2.25rem)',
-                                fontWeight: '500',
-                                color: '#ffffff',
-                                fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
-                                margin: 0
-                            }}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                        >
-                            Hi, I'm
-                        </motion.p>
-
-                        {/* Main Heading */}
-                        <motion.h1
-                            style={{
-                                fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
-                                fontWeight: 'bold',
-                                background: 'linear-gradient(to right, #3915ac, #785bec, #21a2f2)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                backgroundClip: 'text',
-                                margin: 0,
-                                lineHeight: 1.2
-                            }}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.3 }}
-                        >
-                            Abhishek Bajpai
-                        </motion.h1>
-
-                        {/* Subtitle with Rotating Text */}
-                        <motion.h2
-                            style={{
-                                fontSize: 'clamp(1.5rem, 4vw, 2.25rem)',
-                                fontWeight: '500',
-                                color: '#e5e5e5',
-                                fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
-                                margin: 0
-                            }}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.5 }}
-                        >
-                            What am I? <RotatingText words={['Developer', 'Designer', 'Filmmaker']} />
-                        </motion.h2>
-
-                        {/* Tagline */}
-                        <motion.p
-                            style={{
-                                fontSize: 'clamp(1rem, 2vw, 1.125rem)',
-                                color: '#b3b3b3',
-                                maxWidth: '600px',
-                                margin: 0,
-                                lineHeight: 1.6,
-                                fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif'
-                            }}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.7 }}
-                        >
-                            Building digital experiences with code, design, and storytelling
-                        </motion.p>
-                    </motion.div>
-
-                    {/* Right Side - Profile Image with Creative Cutout */}
-                    <motion.div
-                        style={{ display: 'flex', justifyContent: 'center' }}
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8, delay: 0.4 }}
-                    >
-                        <div style={{ position: 'relative', width: '512px', height: '640px', maxWidth: '90vw' }}>
-                            {/* Glow effect behind */}
-                            <div style={{
                                 position: 'absolute',
                                 inset: 0,
-                                background: 'linear-gradient(to bottom, #3915ac, #785bec, #21a2f2)',
+                                width: '100%',
+                                height: '100%',
+                                filter: 'blur(60px) brightness(2) saturate(2.5)',
+                                opacity: 1,
+                                pointerEvents: 'none',
+                                zIndex: 2,
+                            }}
+                        />
+
+                        {/* Canvas stack — absolutely centred */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            zIndex: 3,
+                        }}>
+                            {/* Side-only glow — LEFT: 80px wide, 60% canvas height, centred vertically */}
+                            <div style={{
+                                position: 'absolute',
+                                left: '-80px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: '80px',
+                                height: '60%',
+                                background: 'linear-gradient(to left, #785bec, #3915ac)',
                                 filter: 'blur(60px)',
-                                opacity: 0.3,
-                                borderRadius: '1.5rem'
+                                opacity: 0.5,
+                                pointerEvents: 'none',
+                                zIndex: 1,
+                                display: 'none', // temporarily hidden
                             }} />
 
-                            {/* Image with creative polygon mask - Octagon shape */}
-                            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                                <img
-                                    src="/bajpai.png"
-                                    alt="Abhishek Bajpai"
-                                    style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover',
-                                        objectPosition: 'top',
-                                        clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
-                                        filter: 'drop-shadow(0 25px 50px rgba(57, 21, 172, 0.5))'
-                                    }}
-                                />
-                            </div>
+                            {/* Side-only glow — RIGHT */}
+                            <div style={{
+                                position: 'absolute',
+                                right: '-80px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: '80px',
+                                height: '60%',
+                                background: 'linear-gradient(to right, #785bec, #21a2f2)',
+                                filter: 'blur(60px)',
+                                opacity: 0.5,
+                                pointerEvents: 'none',
+                                zIndex: 1,
+                                display: 'none', // temporarily hidden
+                            }} />
+
+                            {/* Main canvas — no borders, with 4-edge fade mask */}
+                            <canvas
+                                ref={mainCanvasRef}
+                                width={canvasSize.width}
+                                height={canvasSize.height}
+                                style={{
+                                    position: 'relative',
+                                    display: 'block',
+                                    zIndex: 3,
+                                    maxWidth: '90vw',
+                                    height: 'auto',
+                                    border: 'none',
+                                    outline: 'none',
+                                    boxShadow: 'none',
+                                    WebkitMaskImage: `linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%),
+                                                      linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%)`,
+                                    WebkitMaskComposite: 'destination-in',
+                                    maskImage: `linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%),
+                                                linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%)`,
+                                    maskComposite: 'intersect',
+                                }}
+                            />
                         </div>
-                    </motion.div>
+                    </>
+                )}
+
+                {/* Scroll Down indicator */}
+                <div
+                    onClick={scrollToNext}
+                    style={{
+                        position: 'absolute',
+                        bottom: '2rem',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 10,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        opacity: loaded ? 1 : 0,
+                        transition: 'opacity 0.5s ease 0.5s',
+                        color: 'rgba(255,255,255,0.6)',
+                    }}
+                >
+                    <span style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        Scroll Down
+                    </span>
+                    <ChevronDown size={24} />
                 </div>
             </div>
 
-            {/* Scroll Down Indicator */}
-            <motion.div
-                style={{
-                    position: 'absolute',
-                    bottom: '2rem',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 10,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                }}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1 }}
-                onClick={scrollToNext}
-            >
-                <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                    Scroll Down
-                </span>
-                <ChevronDown style={{ color: 'rgba(255, 255, 255, 0.6)' }} size={24} />
-            </motion.div>
+            <style>{`@keyframes heroSpinner { to { transform: rotate(360deg); } }`}</style>
         </section>
     );
 }
