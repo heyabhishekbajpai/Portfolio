@@ -202,34 +202,20 @@ export default function Hero() {
                 </div>
 
                 {!loaded ? (
-                    /* Loading spinner — centred */
-                    <div style={{
-                        position: 'absolute',
-                        inset: 0,
-                        zIndex: 10,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '1rem',
-                    }}>
-                        <div style={{
-                            width: '48px',
-                            height: '48px',
-                            border: '3px solid rgba(255,255,255,0.15)',
-                            borderTopColor: '#785bec',
-                            borderRadius: '50%',
-                            animation: 'heroSpinner 0.8s linear infinite',
-                        }} />
-                        <span style={{
-                            color: 'rgba(255,255,255,0.6)',
-                            fontSize: '0.875rem',
-                            fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-                            letterSpacing: '0.05em',
-                        }}>
-                            {loadProgress}%
-                        </span>
-                    </div>
+                    /* Hero frame preloader — loodingscreen.gif centred, 20vw */
+                    <img
+                        src="/loodingscreen.gif"
+                        alt=""
+                        style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '10vw',
+                            height: 'auto',
+                            zIndex: 10,
+                        }}
+                    />
                 ) : (
                     <>
                         {/* Fullscreen ambient glow — draws current frame blurred across entire viewport */}
@@ -248,6 +234,8 @@ export default function Hero() {
                                 zIndex: 2,
                             }}
                         />
+
+
 
                         {/* Canvas stack — absolutely centred */}
                         <div style={{
